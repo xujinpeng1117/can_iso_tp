@@ -93,22 +93,21 @@ typedef enum {
 
 struct can_iso_tp_link_t {
 	struct can_iso_tp_init_t init_info;
-	//通用变量
 	unsigned int init_done_flag;
-	unsigned int current_time_ms; //当前时间戳
-	//发送任务相关变量
+	unsigned int current_time_ms; //Current timestamp
+	//Sending Task-related Variables
 	struct {
-		struct CAN_msg last_msg; //上一次发送的报文，用于判断上一次是否成功发送
-		unsigned int last_msg_time_ms; //上一次发送的报文的时间戳，用于判断是否发送超时
-		const uint8_t *current_playload; //当前应用层请求发送的数据指针
-		uint32_t current_size; //当前应用层请求发送的数据长度
-		uint32_t current_tx_index; //当前已经发送的数据长度，只用于多帧传输
-		uint8_t current_tx_SN; //当前已经发送的数据计数值，只用于多帧传输
-		uint8_t rx_BS;//当前收到的bs参数
-		uint8_t rx_BS_tx;//当前bs块已经发送的报文数量
-		uint8_t rx_Stmin;//当前收到的Stmin参数
+		struct CAN_msg last_msg; //The last message sent to hardware
+		unsigned int last_msg_time_ms; //The timestamp of the last message, used to determine whether timeout for this task
+		const uint8_t *current_playload; //Data pointer sent by current application layer request
+		uint32_t current_size; //Data Length of Current Application Layer Request Sending
+		uint32_t current_tx_index; //The length of data that is currently sent, for multi-frame transmission only
+		uint8_t current_tx_SN; //Data count value currently sent, for multi-frame transmission only
+		uint8_t rx_BS;//BS parameters currently received
+		uint8_t rx_BS_tx;//Number of frame sent for the current BS block
+		uint8_t rx_Stmin;//Stmin parameters currently received
 		uint8_t N_WFT_cnt;
-		e_tx_status status; //记录当前发送状态
+		e_tx_status status; //Record the current sending status
 	}tx_record;
 	struct {
 		struct L_Data_indication_par_t L_Data_indication_par;
@@ -117,15 +116,15 @@ struct can_iso_tp_link_t {
 		struct N_USData_request_par_t N_USData_request_par;
 		struct event_mange_t event_manage;
 	}tx_events;
-	//接收任务相关变量
+	//Receiving Task-related Variables
 	struct {
 		e_rx_status status;
 		uint32_t rx_index;  
 		uint32_t rx_len; 
 		uint8_t rx_SN;
 		uint8_t tx_BS_cnt;
-		struct CAN_msg last_msg; //上一次发送的报文，用于判断上一次流控是否成功发送
-		unsigned int last_msg_time_ms; //上一次发送的报文的时间戳，用于判断流控是否发送超时
+		struct CAN_msg last_msg; //The last message sent to hardware
+		unsigned int last_msg_time_ms;
 	}rx_record;
 	struct {
 		struct L_Data_indication_par_t L_Data_indication_par;

@@ -1,3 +1,44 @@
+##CAN_ISO_TP
+
+The purpose of this project is to create a general CAN bus transport layer code, which is written with reference to ISO 15765-2 2016. It has the following characteristics:
+
+* Support 1-0xfffffff byte data transfer (not limited to 4095 bytes)
+* Supporting different CAN DLC lengths (8-0x0f), that is, CAN-FD is supported
+* Supporting multiple fault handling mechanisms
+* Independent of specific platform, support compiling and running on embedded and PC side
+* Supporting multiple channels to run without interference when RAM resources are sufficient
+
+Compared with standard protocols, the code has been simplified to a certain extent:
+
+* Mixed Address Address Mode Not Supported
+* N_USData_FF. indication service primitive is not supported
+
+##Use examples
+
+Referring to the test project under example directory, this project uses VS2019 to compile and run (select DEBUG-X86 mode to run), and different parameters will be used to initiate the transmission request at run time. The message in each transmission request will be recorded in the corresponding text file.
+
+##Resource usage instructions
+
+When CAN_ISO_TP runs, each channel occupies the following resources (counted in VS2019, excluding the receiving and sending buffer occupancy):
+
+* RAM usage in support of CANFD (macro definition SUPPORT_CAN_FD in can_iso_tp.h without comment): 540 bytes
+* RAM usage when CANFD (macro definition SUPPORT_CAN_FD in annotation can_iso_tp.h) is not supported: 316 bytes
+
+##Code migration instructions
+
+The code is written in standard C language and can run on multiple platforms. When running on different platforms, attention should be paid to the mcu_lock.h file. MCU_LOCK_ENTER_CRITICAL and MCU_LOCK_EXIT_CRITICAL need to be modified according to the actual hardware. The operation principle is similar to that of code critical zone protection in UCOS-II. If it is only used for simple experimental verification, the default file can be used directly.
+
+##Question Feedback
+
+If you have any questions in use, please give me feedback. You can communicate with me in the following ways
+
+* Email(439590310@qq.com)
+
+
+
+
+
+
 ##CAN_ISO_TP说明
 
 本项目的目的是创建一个通用的CAN总线传输层代码，代码参考ISO 15765-2 2016版编写，具有以下特点：

@@ -68,123 +68,122 @@ struct can_iso_tp_init_t {
 	struct CAN_msg_id tx_id; //tx id when tx tp frame
 	struct CAN_msg_id rx_id; //rx id when rx tp frame
 	struct CAN_msg_id funtion_id; //tx id when tx tp function frame
-	int (*L_Data_request)(can_iso_tp_link_t_p link, const struct CAN_msg* msg); //用于调用底层驱动发送CAN报文
-	void (*N_USData_indication)(can_iso_tp_link_t_p link, const uint8_t payload[], uint32_t size, CAN_ISO_TP_RESAULT error);//用于向上层代码汇报收到TP数据
-	void (*N_USData_confirm)(can_iso_tp_link_t_p link, const uint8_t payload[], uint32_t size, CAN_ISO_TP_RESAULT error);//用于向上层代码汇报TP数据发送完成结果
-	uint8_t *rx_buff;  //用于多帧接收
-	uint32_t rx_buff_len;  //用于多帧接收
-	//超时参数
-	uint16_t N_As;//发送端将数据传送到接收端的最大时间,默认1000
-	uint16_t N_Ar;//接收端将流控制传送到发送端的最大时间,默认1000
-	uint16_t N_Bs;//发送端在成功发送首帧后到接收到流控帧的最大时间,默认1000
-	//uint16_t N_Br;//接收端在接收到首帧后到发送流控制的最大时间
-	//uint16_t N_Cs;//接收端在发送流控制到接收端的最大时间
-	uint16_t N_Cr;//接收端在发送成功流控制后到收到连续帧的最大时间,默认1000
-	uint8_t N_WFTmax;//发送过程中最长等待次数
-	uint8_t FC_BS;//接收过程中发送流控的BS参数
-	uint8_t STmin;//接收过程中发送流控的BS参数
-	uint8_t TX_DLC;//发送报文的DLC值
+	int (*L_Data_request)(can_iso_tp_link_t_p link, const struct CAN_msg* msg); //Used to call the low level driver to send CAN messages
+	void (*N_USData_indication)(can_iso_tp_link_t_p link, const uint8_t payload[], uint32_t size, CAN_ISO_TP_RESAULT error);//Reporting Received TP Data to Upper layer
+	void (*N_USData_confirm)(can_iso_tp_link_t_p link, const uint8_t payload[], uint32_t size, CAN_ISO_TP_RESAULT error);//Used to report TP data completion results to the upper layer
+	uint8_t *rx_buff;  //For multi-frame reception, point to rx buff
+	uint32_t rx_buff_len;  //For multi-frame reception, rx buff length
+	//Timeout parameter
+	uint16_t N_As;//Maximum time for the sender to transmit data to the receiver, default 1000
+	uint16_t N_Ar;//Maximum time for the receiver to transmit flow control to the sender, default 1000
+	uint16_t N_Bs;//The maximum time that the sender receives a flow controll frame after successfully sending the first frame, 1000 by default.
+	//uint16_t N_Br;//Maximum time between receiving end and sending flow control after receiving the first frame
+	//uint16_t N_Cs;//Maximum time that the receiving end controls the sending flow to the receiving end
+	uint16_t N_Cr;//The maximum time from sending successful flow control to receiving continuous frames, 1000 by default.
+	uint8_t N_WFTmax;//Maximum number of waiting times during sending
+	uint8_t FC_BS;//BS parameters of flow control in receiving process
+	uint8_t STmin;//STmin parameters of flow control in receiving process
+	uint8_t TX_DLC;//DLC value of sending message, only used for CAN-FD
 	uint8_t frame_pad;
-	//可选:打印运行信息
+	//Optional: Print run information
 	void(*print_debug)(const char *str);
 };
 
 
 /*
 *********************************************************************************************************
-*                                        创建传输层通道
-* Description : 创建传输层通道
-* Arguments   : 传输层通道参数
-* Returns    : >=0 TP通道编号，从0开始创建
-*              <0 创建失败
+*                                        Creating Transport Layer Channels
+* Description : Creating Transport Layer Channels
+* Arguments   : link: CAN link pointer
+				init: init parameters
+* Returns    : OP_OK: create success
+*              OP_NOK: create fail
 *********************************************************************************************************
 */
 int iso_can_tp_create(can_iso_tp_link_t_p link, struct can_iso_tp_init_t* init);
 
 /*
 *********************************************************************************************************
-*                                        循环调用CAN TP模块
-* Description : 循环调用CAN TP模块,用于报文处理，超时检查等
-* Arguments   : user_ms：当前系统毫秒级时间
-* Returns    : 无
+*                                        cycle call CAN TP module
+* Description : Loop call CAN TP module for frame processing, timeout checking, etc.
+* Arguments   : link: CAN link pointer
+                user_ms：Current system time in millisecond
+* Returns    : none
 *********************************************************************************************************
 */
 void iso_can_tp_poll(can_iso_tp_link_t_p link, unsigned int user_ms);
 
 /*
 *********************************************************************************************************
-*                                        收到CAN报文
-* Description : 收到CAN报文
-* Arguments   : channel: 通道编号
-*               CAN_msg：收到的报文
-* Returns    : 0:收到报文与模块对应通道有关
-               其他:收到报文与模块对应通道无关
+*                                        Received CAN frame from lower layer
+* Description : Received CAN frame from lower layer
+* Arguments   : link: CAN link pointer
+*               CAN_msg：recieved CAN frame
+* Returns    : 0: Receiving a message is related to the module's corresponding channel
+               other: Receiving a message has nothing to do with the corresponding channel of the module
 *********************************************************************************************************
 */
 int iso_can_tp_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN_msg* msg);
 /*
 *********************************************************************************************************
-*                                        发送CAN报文
-* Description : 发送CAN报文
-* Arguments   : channel：通道编号
-                CAN_msg：发送的报文
-* Returns    : 0：成功请求发送
-*              其他：请求发送失败
+*                                        send CAN frame
+* Description : send CAN frame, init by user
+* Arguments   : link: CAN link pointer
+                CAN_msg：CAN frame to be send
+* Returns    : 0：Successful request sending
+*              other：Failed to send request
 *********************************************************************************************************
 */
-//can_iso_tp_link_t结构体中int(*L_Data_request)(can_iso_tp_link_t_p link, const struct CAN_msg* msg);
+//can_iso_tp_link_t:   int(*L_Data_request)(can_iso_tp_link_t_p link, const struct CAN_msg* msg);
 /*
 *********************************************************************************************************
-*                                        发送CAN报文完成确认
-* Description : 确认发送CAN报文完成
-* Arguments   : channel：通道编号
-				CAN_msg：发送的报文，返回的是指针，但只保证内容和L_Data_request中对应指针指向内容相同，不用保证是同一指针
+*                                        Confirm to the last CAN frame tx
+* Description : Confirm to the last CAN frame tx
+* Arguments   : link: CAN link pointer
+				CAN_msg：The frame sent by lower layer
 				error:
-					0: 发送成功
-					其他:发送失败
-* Returns    : 0：正确确认
-*              其他：该报文并非本模块所需报文
+					0: Successful delivery
+					other: Fail in send
+* Returns    : 0：Correct confirmation
+*              other：This frame is not required by this link.
 *********************************************************************************************************
 */
 int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* msg, int8_t error);
 
 /*
 *********************************************************************************************************
-*                                        收到传输层数据包
-* Description : 收到传输层数据包
-* Arguments   : channel：通道编号
-                payload：收到的数据
-*               size：收到的数据长度
-* Returns    : 0：成功请求发送
-*              其他：请求发送失败
+*                                        Receiving Transport Layer Packets
+* Description : Receiving Transport Layer Packets
+* Arguments   : link: CAN link pointer
+                payload：rx data pointer
+*               size：rx data size
+* Returns    : none
 *********************************************************************************************************
 */
 //can_iso_tp_link_t结构体中void (*N_USData_indication)(can_iso_tp_link_t_p link,  const uint8_t payload[], uint32_t size);
 /*
 *********************************************************************************************************
-*                                        发起链路传输请求
-* Description : 发起链路传输请求
-* Arguments   : channel: 通道编号
-*               isFunction：是否为功能寻址，0不是，其他是
-				payload：发送数据
-				size：发送数据长度
-* Returns    : 0：请求成功
-*               其他：请求失败
+*                                        Initiate link transfer request
+* Description : Initiate link transfer request
+* Arguments   : link: CAN link pointer
+*               isFunction：Whether addressing for function, 0 is not
+				payload：tx data pointer
+				size：tx data size
+* Returns    : 0：Successful request
+*               other：request fail
 *********************************************************************************************************
 */
 int iso_can_tp_N_USData_request(can_iso_tp_link_t_p link, uint8_t isFunction, const uint8_t payload[], uint32_t size);
 
 /*
 *********************************************************************************************************
-*                                        链路传输请求发送完成确认
-* Description : 链路传输请求发送完成确认
-* Arguments   : channel: 通道编号
-*               isFunction：上一次请求是否为功能寻址
-				payload：发送数据指针，指向上一次iso_can_tp_N_USData_request中所请求的数据
-				size：上一次请求发送数据长度
-				error：发送完成确认结果
-					0：正确发送
-					其他：发送错误
+*                                        Link Transport Request Sending Complete Confirmation
+* Description : Link Transport Request Sending Complete Confirmation, init by user
+* Arguments   : link: CAN link pointer
+*               isFunction：Whether addressing for function, 0 is not
+				payload：data pointer requested in the previous iso_can_tp_N_USData_request
+				size：Last request sent data length
+				error：Send Completion Confirmation Result
 * Returns    : 
 *********************************************************************************************************
 */

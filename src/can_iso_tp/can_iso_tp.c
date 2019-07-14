@@ -62,7 +62,7 @@ static int report_event_to_manage_block(struct event_mange_t* task, void* par_wi
 {
 	int res = OP_NOK;
 
-	//将POLL实践压入FIFO队列
+	//Push events into FIFO queues
 	if (QueueOperateOk != QueueIn(&task->fifo, (ElemType)par_with_handle))
 	{
 		//can not call printf_debug_msg here, return OP_NOK
@@ -74,7 +74,7 @@ static int report_event_to_manage_block(struct event_mange_t* task, void* par_wi
 				struct {
 					event_handle_t handle;
 				}*par;
-				//从FIFO队列中取出最新的事件记录
+				//Retrieve the latest event record from the FIFO queue
 				if (QueueOperateOk != QueueOut(&task->fifo, (ElemType*)& par))
 				{
 					break;
@@ -152,7 +152,7 @@ static int tx_event_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 
 	if (link->tx_record.status != tx_idle)
 	{
-		//检查报文是否发送超时
+		//Check whether the message is sent out of time
 		if ((user_ms - link->tx_record.last_msg_time_ms) > link->init_info.N_As)
 		{
 			if (link->init_info.N_USData_confirm)
@@ -169,7 +169,7 @@ static int tx_event_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 		}
 		else if (link->tx_record.status == tx_sf_wait_tx)
 		{
-			//如果上一次驱动发送失败，则重新请求发送
+			//If the last driver failed to send, the request is resubmitted
 			if (0 == link->init_info.L_Data_request(link, &link->tx_record.last_msg))
 			{
 				link->tx_record.status = tx_sf_wait_confirm;
@@ -177,7 +177,7 @@ static int tx_event_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 		}
 		else if (link->tx_record.status == tx_ff_wait_tx)
 		{
-			//如果上一次驱动发送失败，则重新请求发送
+			//If the last driver failed to send, the request is resubmitted
 			if (0 == link->init_info.L_Data_request(link, &link->tx_record.last_msg))
 			{
 				link->tx_record.status = tx_ff_wait_confirm;
@@ -185,7 +185,7 @@ static int tx_event_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 		}
 		else if (link->tx_record.status == tx_cf_wait_tx_retry)
 		{
-			//如果上一次驱动发送失败，则重新请求发送
+			//If the last driver failed to send, the request is resubmitted
 			if (0 == link->init_info.L_Data_request(link, &link->tx_record.last_msg))
 			{
 				link->tx_record.rx_BS_tx++;
@@ -397,7 +397,7 @@ static int rx_event_handle_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 {
 	if (link->rx_record.status == rx_wait_cf)
 	{
-		//检查报文是否发送超时
+		//Check whether the message is sent out of time
 		if ((user_ms - link->rx_record.last_msg_time_ms) > link->init_info.N_Cr)
 		{
 			if (link->init_info.N_USData_indication)
@@ -409,7 +409,7 @@ static int rx_event_handle_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 	}
 	if ((link->rx_record.status == rx_tx_fc_wait_confirm) || (link->rx_record.status == rx_tx_fc))
 	{
-		//检查报文是否发送超时
+		//Check whether the message is sent out of time
 		if ((user_ms - link->rx_record.last_msg_time_ms) > link->init_info.N_Ar)
 		{
 			if (link->init_info.N_USData_indication)
@@ -421,7 +421,7 @@ static int rx_event_handle_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 	}
 	if (link->rx_record.status == rx_tx_fc)
 	{
-		//如果上一次驱动发送失败，则重新请求发送
+		//If the last driver failed to send, the request is resubmitted
 		if (0 == link->init_info.L_Data_request(link, &link->rx_record.last_msg))
 		{
 			link->rx_record.status = rx_tx_fc_wait_confirm;
@@ -429,7 +429,7 @@ static int rx_event_handle_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 	}
 	else if (link->rx_record.status == rx_tx_fc_overrun)
 	{
-		//如果上一次驱动发送失败，则重新请求发送
+		//If the last driver failed to send, the request is resubmitted
 		if (0 == link->init_info.L_Data_request(link, &link->rx_record.last_msg))
 		{
 			link->rx_record.status = rx_tx_fc_overrun_wait_confirm;
@@ -706,7 +706,7 @@ void iso_can_tp_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 	{
 		return;
 	}
-	//更新内部时间戳
+	//Update internal timestamp
 	link->current_time_ms = user_ms;
 	if (link->rx_events.time_poll_par.handle == (event_handle_t)0)
 	{
@@ -744,7 +744,7 @@ int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* ms
 	}
 	if (msg != (const struct CAN_msg*)0)
 	{
-		//rx任务只关注发送完成的流控报文，其他报文不管，tx任务不用管发送完成的流控报文
+		//RX task only focuses on sending completed flow control messages, other messages regardless, TX task does not care about sending completed flow control messages
 		if ((msg->data[0] & 0xf0) == 0x30)
 		{
 			if ((msg->id.isExt == link->rx_record.last_msg.id.isExt)
@@ -808,7 +808,7 @@ int iso_can_tp_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN_msg*
 			|| ((msg->id.isExt == link->init_info.funtion_id.isExt)&& (msg->id.id == link->init_info.funtion_id.id))
 			)
 		{
-			//tx任务只关注收到流控报文，其他接收报文可以不管，rx任务不管收到的流控报文
+			//TX task only pays attention to receiving flow control message, other receive message can be ignored, RX task no matter receiving flow control message
 			if ((msg->data[0] & 0xf0) == 0x30)
 			{
 				if (link->tx_events.L_Data_indication_par.handle == (event_handle_t)0)

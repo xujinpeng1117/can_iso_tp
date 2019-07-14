@@ -40,24 +40,22 @@ typedef unsigned int cpu_status_t;
 
 #ifdef _WIN32
 
-//在上位机测试环境下，不用关中断
-//保存当前中断状态并关闭中断
+//In PC test environment, no interruption is needed.
 #define MCU_LOCK_ENTER_CRITICAL do{cpu_sr = 1;}while(0)
-//恢复中断状态
 #define MCU_LOCK_EXIT_CRITICAL do{cpu_sr = 0;}while(0)
 
 #else
 
-//这两个宏与具体单片机有关，需按照实际情况修改
-/* 具体实例：
+//These two macros are related to the specific MCU and need to be modified according to the actual situation.
+/* Example：
 #define MCU_LOCK_ENTER_CRITICAL do{\
     cpu_sr=INTERRUPT_STATUS; \
 DISABLE_INTERRUPT;}while(0)
 #define MCU_LOCK_EXIT_CRITICAL do{INTERRUPT_STATUS = cpu_sr;}while(0)
 */
-//保存当前中断状态并关闭中断
+//Save the current interrupt status and close the interrupt
 #define MCU_LOCK_ENTER_CRITICAL do{cpu_sr = 1;}while(0)
-//恢复中断状态
+//Restore interruption status
 #define MCU_LOCK_EXIT_CRITICAL do{cpu_sr = 0;}while(0)
 
 #endif

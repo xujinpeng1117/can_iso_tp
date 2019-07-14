@@ -30,13 +30,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 
-//inline void mcu_lock_init(mcu_lock_t *lock)
+
 void mcu_lock_init(mcu_lock_t* lock)
 {
 	*lock = 0;
 }
 
-//inline unsigned int mcu_lock_try_lock(register mcu_lock_t *lock)
+
 unsigned int mcu_lock_try_lock(register mcu_lock_t* lock)
 {
 	register volatile cpu_status_t cpu_sr;
@@ -54,7 +54,7 @@ unsigned int mcu_lock_try_lock(register mcu_lock_t* lock)
 	return ret;
 }
 
-//inline void mcu_lock_unlock(mcu_lock_t *lock)
+
 void mcu_lock_unlock(mcu_lock_t* lock)
 {
 	/*cpu_status_t cpu_sr;
