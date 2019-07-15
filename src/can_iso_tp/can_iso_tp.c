@@ -671,6 +671,21 @@ int iso_can_tp_create(can_iso_tp_link_t_p link, struct can_iso_tp_init_t* init)
 		printf_debug_msg(init, MODULE_PRINT"funtion_id should not = rx_id\n");
 		return OP_NOK;
 	}
+	if (init->tx_id.isRemote != 0)
+	{
+		printf_debug_msg(init, MODULE_PRINT"tx frame should not be remote frame\n");
+		init->tx_id.isRemote = 0;
+	}
+	if (init->funtion_id.isRemote != 0)
+	{
+		printf_debug_msg(init, MODULE_PRINT"funtion frame should not be remote frame\n");
+		init->funtion_id.isRemote = 0;
+	}
+	if (init->rx_id.isRemote != 0)
+	{
+		printf_debug_msg(init, MODULE_PRINT"rx frame should not be remote frame\n");
+		init->rx_id.isRemote = 0;
+	}
 	#ifdef SUPPORT_CAN_FD
 		if (init->TX_DLC < 8)
 		{
@@ -684,6 +699,22 @@ int iso_can_tp_create(can_iso_tp_link_t_p link, struct can_iso_tp_init_t* init)
 		}
 	#else
 		init->TX_DLC = 8;
+
+		if (init->tx_id.isCANFD != 0)
+		{
+			printf_debug_msg(init, MODULE_PRINT"tx frame can not have can-fd frame, compile with maro SUPPORT_CAN_FD if you need can-fd support\n");
+			return OP_NOK;
+		}
+		if (init->funtion_id.isCANFD != 0)
+		{
+			printf_debug_msg(init, MODULE_PRINT"funtion frame can not have can-fd frame, compile with maro SUPPORT_CAN_FD if you need can-fd support\n");
+			return OP_NOK;
+		}
+		if (init->rx_id.isCANFD != 0)
+		{
+			printf_debug_msg(init, MODULE_PRINT"rx frame can not have can-fd frame, compile with maro SUPPORT_CAN_FD if you need can-fd support\n");
+			return OP_NOK;
+		}
 	#endif
 	memset(link, 0, sizeof(struct can_iso_tp_link_t));
 	link->init_info = *init;
@@ -804,6 +835,18 @@ int iso_can_tp_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN_msg*
 	}
 	if (msg)
 	{
+		//ignore remote frames
+		if (msg->id.isRemote != 0)
+		{
+			return OP_NOK;
+		}
+#ifndef SUPPORT_CAN_FD
+		if ((msg->id.isCANFD != 0) || (msg->dlc > 8))
+		{
+			printf_debug_msg(&link->init_info, "L_Data_indication cannot handle CANFD frame when SUPPORT_CAN_FD is not defined.\n");
+			return OP_NOK;
+		}
+#endif
 		if (((msg->id.isExt == link->init_info.rx_id.isExt)&& (msg->id.id == link->init_info.rx_id.id))
 			|| ((msg->id.isExt == link->init_info.funtion_id.isExt)&& (msg->id.id == link->init_info.funtion_id.id))
 			)

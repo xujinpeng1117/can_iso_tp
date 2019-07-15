@@ -40,7 +40,9 @@ extern "C" {
 typedef struct can_iso_tp_link_t* can_iso_tp_link_t_p;
 struct CAN_msg_id {
 	uint32_t id:29;   //frame id
-	uint32_t isExt:1;//0:std frame£¬ 1£ºext frame
+	uint32_t isExt:1;//0:std frame, 1: ext frame
+	uint32_t isCANFD : 1;//0:classical frame, 1: CANFD frame
+	uint32_t isRemote : 1;//0:data frame, 1: remote frame
 };
 struct CAN_msg {
 	struct CAN_msg_id id;

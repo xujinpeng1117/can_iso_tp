@@ -29,7 +29,13 @@ static int L_Data_request(can_iso_tp_link_t_p link_src, const struct CAN_msg* ms
 
 	{
 		char str_msg[600];
-		sprintf_s(str_msg, "can msg with id 0x%x dlc 0x%d: ", msg->id.id, msg->dlc);
+		if (msg->id.isCANFD == 0)
+		{
+			sprintf_s(str_msg, "can msg with id 0x%x dlc 0x%d: ", msg->id.id, msg->dlc);
+		}
+		else {
+			sprintf_s(str_msg, "can-fd msg with id 0x%x dlc 0x%d: ", msg->id.id, msg->dlc);
+		}
 		for (int i = 0; i < dlc2len(msg->dlc); i++)
 		{
 			sprintf_s(str_msg, "%s0x%02x ", str_msg, msg->data[i]);
@@ -70,16 +76,24 @@ void init_for_all_links(void)
 		{
 			init[i].rx_id.id = 0x602;
 			init[i].rx_id.isExt = 0;
+			init[i].rx_id.isCANFD = 0;
 			init[i].tx_id.id = 0x601;
 			init[i].tx_id.isExt = 0;
+			init[i].tx_id.isCANFD = 0;
 			init[i].funtion_id.id = 0x7ff;
+			init[i].funtion_id.isExt = 0;
+			init[i].tx_id.isCANFD = 0;
 		}
 		else {
 			init[i].rx_id.id = i * 30;
 			init[i].rx_id.isExt = 0;
+			init[i].rx_id.isCANFD = 0;
 			init[i].tx_id.id = i * 30 + 1;
 			init[i].tx_id.isExt = 0;
+			init[i].tx_id.isCANFD = 0;
 			init[i].funtion_id.id = 0x7ff;
+			init[i].funtion_id.isExt = 0;
+			init[i].tx_id.isCANFD = 0;
 		}
 		init[i].N_Ar = 1000;
 		init[i].N_As = 1000;
@@ -123,6 +137,11 @@ int main()
 				{
 					init[i].TX_DLC = test_TX_DL;
 					init[i].FC_BS = test_BS;
+					if (test_TX_DL > 8)
+					{
+						init[i].rx_id.isCANFD = 1;
+						init[i].tx_id.isCANFD = 1;
+					}
 					iso_can_tp_create(&link[i], &init[i]);
 				}
 				sprintf_s(file_name, "log_TX_DLC_0x%x_len_%d_bs_%d.txt", test_TX_DL, test_len, test_BS);
