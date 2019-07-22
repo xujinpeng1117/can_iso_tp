@@ -10,12 +10,12 @@ The purpose of this project is to create a general CAN bus transport layer code,
 
 Compared with standard protocols, the code has been simplified to a certain extent:
 
-* Mixed Address Address Mode Not Supported
+* Mixed address mode is not supported
 * N_USData_FF. indication service primitive is not supported
 
 ##Use examples
 
-Referring to the test project under example directory, this project uses VS2019 to compile and run (select DEBUG-X86 mode to run), and different parameters will be used to initiate the transmission request at run time. The message in each transmission request will be recorded in the corresponding text file.
+Referring to the test project under example directory, this project uses VS2019 to compile and run (select DEBUG-X86 mode to run), and different parameters will be used to initiate the transmission request at run time. The frames in each transmission request will be recorded in the corresponding text file.
 
 ##Resource usage instructions
 
