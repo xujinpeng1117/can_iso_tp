@@ -12,6 +12,7 @@ Compared with standard protocols, the code has been simplified to a certain exte
 
 * Mixed address mode is not supported
 * N_USData_FF. indication service primitive is not supported
+* Runtime modification of configuration parameters is not supported
 
 ##Use examples
 
@@ -53,6 +54,7 @@ If you have any questions in use, please give me feedback. You can communicate w
 
 * 不支持混合地址寻址模式
 * 不支持N_USData_FF.indication服务原语
+* 不支持运行时修改配置参数
 
 ##使用示例
 
