@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SET_INIT_DONE_FLAG(link) do{link->init_done_flag = INIT_DONE_FLAG;}while(0)
 #define CHECK_INIT_DONE_FLAG(link) (link->init_done_flag == INIT_DONE_FLAG)
 #define MODULE_PRINT "can_iso_tp: "
-static void printf_debug_msg(struct can_iso_tp_init_t* link, char *msg)
+static void printf_debug_msg(struct can_iso_tp_init_t* link, const char *msg)
 {
 	if (link->print_debug)
 	{
