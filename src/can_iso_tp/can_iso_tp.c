@@ -36,7 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SET_INIT_DONE_FLAG(link) do{link->init_done_flag = INIT_DONE_FLAG;}while(0)
 #define CHECK_INIT_DONE_FLAG(link) (link->init_done_flag == INIT_DONE_FLAG)
 #define MODULE_PRINT "can_iso_tp: "
-static void printf_debug_msg(struct can_iso_tp_init_t* link, const char *msg)
+static void printf_debug_msg(struct can_iso_tp_init_t* link, char *msg)
 {
 	if (link->print_debug)
 	{
@@ -733,31 +733,38 @@ int iso_can_tp_create(can_iso_tp_link_t_p link, struct can_iso_tp_init_t* init)
 }
 void iso_can_tp_poll(can_iso_tp_link_t_p link, unsigned int user_ms)
 {
+	register volatile cpu_status_t cpu_sr;
 	if (!CHECK_INIT_DONE_FLAG(link))
 	{
 		return;
 	}
 	//Update internal timestamp
 	link->current_time_ms = user_ms;
+	MCU_LOCK_ENTER_CRITICAL;
 	if (link->rx_events.time_poll_par.handle == (event_handle_t)0)
 	{
 		link->rx_events.time_poll_par.handle = rx_event_poll_handle;
+		MCU_LOCK_EXIT_CRITICAL;
 		link->rx_events.time_poll_par.link = link;
 		link->rx_events.time_poll_par.user_ms = user_ms;
 		report_event_to_manage_block(&link->rx_events.event_manage, &link->rx_events.time_poll_par);
 	}
 	else {
+		MCU_LOCK_EXIT_CRITICAL;
 		printf_debug_msg(&link->init_info, "iso_can_tp_poll cannot insert new rx evnent when last is not done.\n");
 	}
 
+	MCU_LOCK_ENTER_CRITICAL;
 	if (link->tx_events.time_poll_par.handle == (event_handle_t)0)
 	{
 		link->tx_events.time_poll_par.handle = tx_event_poll_handle;
+		MCU_LOCK_EXIT_CRITICAL;
 		link->tx_events.time_poll_par.link = link;
 		link->tx_events.time_poll_par.user_ms = user_ms;
 		report_event_to_manage_block(&link->tx_events.event_manage, &link->tx_events.time_poll_par);
 	}
 	else {
+		MCU_LOCK_EXIT_CRITICAL;
 		printf_debug_msg(&link->init_info, "iso_can_tp_poll cannot insert new tx evnent when last is not done.\n");
 	}
 
@@ -775,6 +782,7 @@ int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* ms
 	}
 	if (msg != (const struct CAN_msg*)0)
 	{
+		register volatile cpu_status_t cpu_sr;
 		//RX task only focuses on sending completed flow control messages, other messages regardless, TX task does not care about sending completed flow control messages
 		if ((msg->data[0] & 0xf0) == 0x30)
 		{
@@ -784,14 +792,17 @@ int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* ms
 				&& (0 == memcmp(msg->data, link->rx_record.last_msg.data, link->rx_record.last_msg.dlc))
 				)
 			{
+				MCU_LOCK_ENTER_CRITICAL;
 				if (link->rx_events.L_Data_confirm_par.handle == (event_handle_t)0)
 				{
 					link->rx_events.L_Data_confirm_par.handle = rx_event_L_Data_Confirm_handle;
+					MCU_LOCK_EXIT_CRITICAL;
 					link->rx_events.L_Data_confirm_par.link = link;
 					link->rx_events.L_Data_confirm_par.error = error;
 					res = report_event_to_manage_block(&link->rx_events.event_manage, &link->rx_events.L_Data_confirm_par);
 				}
 				else {
+					MCU_LOCK_EXIT_CRITICAL;
 					printf_debug_msg(&link->init_info, "L_Data_confirm cannot insert new rx evnent when last is not done.\n");
 				}
 
@@ -804,14 +815,17 @@ int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* ms
 				&& (0 == memcmp(msg->data, link->tx_record.last_msg.data, link->tx_record.last_msg.dlc))
 				)
 			{
+				MCU_LOCK_ENTER_CRITICAL;
 				if (link->tx_events.L_Data_confirm_par.handle == (event_handle_t)0)
 				{
 					link->tx_events.L_Data_confirm_par.handle = tx_event_L_Data_Confirm_handle;
+					MCU_LOCK_EXIT_CRITICAL;
 					link->tx_events.L_Data_confirm_par.link = link;
 					link->tx_events.L_Data_confirm_par.error = error;
 					res = report_event_to_manage_block(&link->tx_events.event_manage, &link->tx_events.L_Data_confirm_par);
 				}
 				else {
+					MCU_LOCK_EXIT_CRITICAL;
 					printf_debug_msg(&link->init_info, "L_Data_confirm cannot insert new tx evnent when last is not done.\n");
 				}
 			}
@@ -851,29 +865,36 @@ int iso_can_tp_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN_msg*
 			|| ((msg->id.isExt == link->init_info.funtion_id.isExt)&& (msg->id.id == link->init_info.funtion_id.id))
 			)
 		{
+			register volatile cpu_status_t cpu_sr;
 			//TX task only pays attention to receiving flow control message, other receive message can be ignored, RX task no matter receiving flow control message
 			if ((msg->data[0] & 0xf0) == 0x30)
 			{
+				MCU_LOCK_ENTER_CRITICAL;
 				if (link->tx_events.L_Data_indication_par.handle == (event_handle_t)0)
 				{
 					link->tx_events.L_Data_indication_par.handle = tx_event_L_Data_indication_handle;
+					MCU_LOCK_EXIT_CRITICAL;
 					link->tx_events.L_Data_indication_par.link = link;
 					link->tx_events.L_Data_indication_par.rx_msg = *msg;
 					res = report_event_to_manage_block(&link->tx_events.event_manage, &link->tx_events.L_Data_indication_par);
 				}
 				else {
+					MCU_LOCK_EXIT_CRITICAL;
 					printf_debug_msg(&link->init_info, "L_Data_indication cannot insert new tx evnent when last is not done.\n");
 				}
 			}
 			else {
+				MCU_LOCK_ENTER_CRITICAL;
 				if (link->rx_events.L_Data_indication_par.handle == (event_handle_t)0)
 				{
 					link->rx_events.L_Data_indication_par.handle = rx_event_L_Data_indication_handle;
+					MCU_LOCK_EXIT_CRITICAL;
 					link->rx_events.L_Data_indication_par.link = link;
 					link->rx_events.L_Data_indication_par.rx_msg = *msg;
 					res = report_event_to_manage_block(&link->rx_events.event_manage, &link->rx_events.L_Data_indication_par);
 				}
 				else {
+					MCU_LOCK_EXIT_CRITICAL;
 					printf_debug_msg(&link->init_info, "L_Data_indication cannot insert new rx evnent when last is not done.\n");
 				}
 			}
@@ -905,9 +926,12 @@ int iso_can_tp_N_USData_request(can_iso_tp_link_t_p link, uint8_t isFunction, co
 			printf_debug_msg(&link->init_info, MODULE_PRINT"can not tx diag request when size == 0\n");
 		}
 		else {
+			register volatile cpu_status_t cpu_sr;
+			MCU_LOCK_ENTER_CRITICAL;
 			if (link->tx_events.N_USData_request_par.handle == (event_handle_t)0)
 			{
 				link->tx_events.N_USData_request_par.handle = tx_event_N_USData_Request_handle;
+				MCU_LOCK_EXIT_CRITICAL;
 				link->tx_events.N_USData_request_par.link = link;
 				link->tx_events.N_USData_request_par.isFunction = isFunction;
 				link->tx_events.N_USData_request_par.payload = payload;
@@ -915,6 +939,7 @@ int iso_can_tp_N_USData_request(can_iso_tp_link_t_p link, uint8_t isFunction, co
 				res = report_event_to_manage_block(&link->tx_events.event_manage, &link->tx_events.N_USData_request_par);
 			}
 			else {
+				MCU_LOCK_EXIT_CRITICAL;
 				printf_debug_msg(&link->init_info, "N_USData_request cannot insert new tx evnent when last is not done.\n");
 			}
 		}
