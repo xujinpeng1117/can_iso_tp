@@ -1,6 +1,6 @@
 ##unit_test
 
-The vs2019 project in this directory (running in debug-x86 mode) is used for unit test of can ISO TP code. The test method refers to the book <<Test-Driven Development for Embedded C>> and adopts cpputest framework.    
+The vs2019 project in this directory (running in debug-x86 mode) is used for unit test of can ISO TP code. The test method refers to the book "Test-Driven Development for Embedded C" and adopts cpputest framework.    
 本目录下的VS2019工程（选择DEBUG-X86模式运行）用于对can_iso_tp代码进行单元测试，测试方法参考书籍《测试驱动的嵌入式C语言开发》并采用CPPUTEST框架。
 
 Unit test includes basic, single frame, multi frame, communication between multiple nodes. Through the way of simulation bus, the possible correct / fault operation state can be produced, thus assisting code development and reconstruction.     
