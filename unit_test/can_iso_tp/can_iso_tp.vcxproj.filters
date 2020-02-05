@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="can_iso_tp">
+      <UniqueIdentifier>{971b7d5e-b546-4133-b009-be55dab12421}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="test">
+      <UniqueIdentifier>{1263e88f-9c5f-4a98-a767-80940f42a0eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src_dep">
+      <UniqueIdentifier>{0b1a8c85-17ae-4f76-a20e-8790c802a7ab}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="AllTests.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseTest.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="singleFrame.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="multiFrame.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="test_mocks.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="multiChannelTEst.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\can_iso_tp\can_iso_tp.c">
+      <Filter>can_iso_tp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\fifo\FIFOQUEUE.c">
+      <Filter>src_dep</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\mcu_lock\mcu_lock.c">
+      <Filter>src_dep</Filter>
+    </ClCompile>
+    <ClCompile Include="testPrint.cpp">
+      <Filter>test</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="test_mocks.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\can_iso_tp\can_iso_tp.h">
+      <Filter>can_iso_tp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\can_iso_tp\can_iso_tp_private.h">
+      <Filter>can_iso_tp</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\fifo\FIFOQUEUE.h">
+      <Filter>src_dep</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mcu_lock\mcu_lock.h">
+      <Filter>src_dep</Filter>
+    </ClInclude>
+    <ClInclude Include="testPrint.h">
+      <Filter>test</Filter>
+    </ClInclude>
+    <ClInclude Include="typedefs.h">
+      <Filter>test</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
