@@ -262,9 +262,14 @@ TEST(singleTest, singleTxWithOtherDone)
 			wrong_done_msg = last_tx_par[i].par[0].msg;
 			wrong_done_msg.id.id++;
 			CHECK(0 != iso_can_tp_L_Data_confirm(&link[i], &wrong_done_msg, 0));
-			//数据段不匹配
+			//数据段不匹配-第一字节
 			wrong_done_msg = last_tx_par[i].par[0].msg;
 			wrong_done_msg.data[0]++;
+			CHECK(0 != iso_can_tp_L_Data_confirm(&link[i], &wrong_done_msg, 0));
+
+			//数据段不匹配-最后字节   - 该bug由songarpore@hotmail.com提供
+			wrong_done_msg = last_tx_par[i].par[0].msg;
+			wrong_done_msg.data[dlc2len(wrong_done_msg.dlc)-1]++;
 			CHECK(0 != iso_can_tp_L_Data_confirm(&link[i], &wrong_done_msg, 0));
 		}
 	}

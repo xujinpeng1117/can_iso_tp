@@ -522,41 +522,44 @@ static int rx_event_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN
 	}
 	else if ((rx_msg->data[0] & 0xf0) == 0x20) {
 		//rx cf
-		uint32_t rx_len = link->rx_record.rx_len - link->rx_record.rx_index;
-		if (rx_len > (uint32_t)(dlc2len(rx_msg->dlc) - 1))
+		if (link->rx_record.status == rx_wait_cf)
 		{
-			rx_len = (dlc2len(rx_msg->dlc) - 1);
-		}
-		link->rx_record.rx_SN++;
-		link->rx_record.last_msg_time_ms = link->current_time_ms;
-		if ((link->rx_record.rx_SN & 0xf) == (rx_msg->data[0] & 0xf))
-		{
-			memcpy(&link->init_info.rx_buff[link->rx_record.rx_index], &rx_msg->data[1], rx_len);
-			link->rx_record.rx_index += rx_len;
-			if (link->rx_record.status != rx_idle)
+			uint32_t rx_len = link->rx_record.rx_len - link->rx_record.rx_index;
+			if (rx_len > (uint32_t)(dlc2len(rx_msg->dlc) - 1))
 			{
-				if (link->rx_record.rx_index >= link->rx_record.rx_len)
+				rx_len = (dlc2len(rx_msg->dlc) - 1);
+			}
+			link->rx_record.rx_SN++;
+			link->rx_record.last_msg_time_ms = link->current_time_ms;
+			if ((link->rx_record.rx_SN & 0xf) == (rx_msg->data[0] & 0xf))
+			{
+				memcpy(&link->init_info.rx_buff[link->rx_record.rx_index], &rx_msg->data[1], rx_len);
+				link->rx_record.rx_index += rx_len;
+				if (link->rx_record.status != rx_idle)
 				{
-					if (link->init_info.N_USData_indication)
+					if (link->rx_record.rx_index >= link->rx_record.rx_len)
 					{
-						link->init_info.N_USData_indication(link, link->init_info.rx_buff, link->rx_record.rx_len, N_OK);
+						if (link->init_info.N_USData_indication)
+						{
+							link->init_info.N_USData_indication(link, link->init_info.rx_buff, link->rx_record.rx_len, N_OK);
+						}
+						link->rx_record.status = rx_idle;
 					}
-					link->rx_record.status = rx_idle;
-				}
-				link->rx_record.tx_BS_cnt++;
-				if (link->init_info.FC_BS != 0)
-				{
-					if ((link->rx_record.tx_BS_cnt % link->init_info.FC_BS) == 0)
+					link->rx_record.tx_BS_cnt++;
+					if (link->init_info.FC_BS != 0)
 					{
-						link->rx_record.status = rx_tx_fc;
-						link->rx_record.tx_BS_cnt = 0;
+						if ((link->rx_record.tx_BS_cnt % link->init_info.FC_BS) == 0)
+						{
+							link->rx_record.status = rx_tx_fc;
+							link->rx_record.tx_BS_cnt = 0;
+						}
 					}
 				}
 			}
-		}
-		else {
-			link->init_info.N_USData_indication(link, link->init_info.rx_buff, link->rx_record.rx_len, N_WRONG_SN);
-			link->rx_record.status = rx_idle;
+			else {
+				link->init_info.N_USData_indication(link, link->init_info.rx_buff, link->rx_record.rx_len, N_WRONG_SN);
+				link->rx_record.status = rx_idle;
+			}
 		}
 	}
 	if (link->rx_record.status == rx_tx_fc)
@@ -789,7 +792,7 @@ int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* ms
 			if ((msg->id.isExt == link->rx_record.last_msg.id.isExt)
 				&& (msg->id.id == link->rx_record.last_msg.id.id)
 				&& (msg->dlc == link->rx_record.last_msg.dlc)
-				&& (0 == memcmp(msg->data, link->rx_record.last_msg.data, link->rx_record.last_msg.dlc))
+				&& (0 == memcmp(msg->data, link->rx_record.last_msg.data, dlc2len(link->rx_record.last_msg.dlc)))
 				)
 			{
 				MCU_LOCK_ENTER_CRITICAL;
@@ -812,7 +815,7 @@ int iso_can_tp_L_Data_confirm(can_iso_tp_link_t_p link, const struct CAN_msg* ms
 			if ((msg->id.isExt == link->tx_record.last_msg.id.isExt)
 				&& (msg->id.id == link->tx_record.last_msg.id.id)
 				&& (msg->dlc == link->tx_record.last_msg.dlc)
-				&& (0 == memcmp(msg->data, link->tx_record.last_msg.data, link->tx_record.last_msg.dlc))
+				&& (0 == memcmp(msg->data, link->tx_record.last_msg.data, dlc2len(link->tx_record.last_msg.dlc)))
 				)
 			{
 				MCU_LOCK_ENTER_CRITICAL;

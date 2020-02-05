@@ -1091,6 +1091,130 @@ TEST(multiTest, normalRxBS)
 	}
 	printf("time for case %s is %lldms\n", __FUNCTION__, GetTickCount64() - tick_start);
 }
+/*验证模块发出的流控报文在没有获得发送完成确认时，不会执行之后的接收操作 - 该bug由songarpore@hotmail.com提供 */
+//测试条件：
+//测试步骤：
+//1. 向被测通道发送首帧
+//2. 被测通道回复流控
+//3. 修改流控报文发送确认报文内容
+//期待结果：
+//1. 测试代码不应该继续接收剩余多帧内容
+int wrongFCConfirm_tx_CAN_frame_with_done(can_iso_tp_link_t_p link, const struct CAN_msg* msg)
+{
+	struct CAN_msg msgTmp = *msg;
+	if (msgTmp.data[0] == 0x30)
+	{
+		msgTmp.data[dlc2len(msgTmp.dlc) - 1]++;
+	}
+	else {
+	}
+	iso_can_tp_L_Data_confirm(link, &msgTmp, 0);
+	return 0;
+}
+TEST(multiTest, wrongFCConfirm)
+{
+	ULONGLONG tick_start = GetTickCount64();
+	//print_enable = true;
+
+	for (int TX_DLC = 8; TX_DLC <= TEST_DLC_MAX; TX_DLC++)
+	{
+		for (int i = 0; i < TEST_CHANNEL_NUM; i++)
+		{
+			testPrintf("test for TEST_DLC=%d  channel=%d", TX_DLC, i);
+			init[i].TX_DLC = TX_DLC;
+			LONGS_EQUAL(OP_OK, iso_can_tp_create(&link[i], &init[i]));
+			uint8_t len_start;
+			if (TX_DLC == 8)
+			{
+				len_start = dlc2len(TX_DLC) - 1 + 1;
+			}
+			else {
+				len_start = dlc2len(TX_DLC) - 2 + 1;
+			}
+			uint64_t len_inc = 1000;
+			for (uint64_t len = len_start; len < sizeof(payload); len += 0xfff / 5 + len_inc)
+			{
+				if (len > 0xfff) len_inc = sizeof(payload) / 2;
+				init_last_tx_par_vars();
+				init_last_tp_recieve_vars();
+				init_last_tx_done_vars();
+				testPrintf("test for len %d.\n", len);
+				//-----------------------------------------------------------------
+
+				uint16_t BS = 0;
+				{
+					//testPrintf("test for bs %d.\n", BS);
+					init_all_modules();
+					init[i].FC_BS = (uint8_t)BS;
+					LONGS_EQUAL(OP_OK, iso_can_tp_create(&link[i], &init[i]));
+
+					L_Data_request_hook = wrongFCConfirm_tx_CAN_frame_with_done;
+					init_last_tx_par_vars();
+					init_last_tx_done_vars();
+					init_last_tp_recieve_vars();
+
+					struct CAN_msg FFMsg;
+					FFMsg.dlc = TX_DLC;
+					FFMsg.id = init[i].rx_id;
+					if (len > 0xfff)
+					{
+						FFMsg.data[0] = 0x10;
+						FFMsg.data[1] = 0;
+						FFMsg.data[2] = (uint8_t)(len >> 24);
+						FFMsg.data[3] = (uint8_t)(len >> 16);
+						FFMsg.data[4] = (uint8_t)(len >> 8);
+						FFMsg.data[5] = (uint8_t)(len);
+						memcpy(&FFMsg.data[6], &payload[0], dlc2len(TX_DLC) - 6);
+					}
+					else {
+						FFMsg.data[0] = (uint8_t)(0x10 | (len >> 8));
+						FFMsg.data[1] = (uint8_t)len;
+						memcpy(&FFMsg.data[2], &payload[0], dlc2len(TX_DLC) - 2);
+					}
+					iso_can_tp_L_Data_indication(&link[i], &FFMsg);
+
+					uint32_t txFrameNum;
+					uint64_t txIndex;
+					uint16_t cf_tx_data_len = (dlc2len(TX_DLC) - 1);
+					{
+						uint16_t ff_tx_data_len;
+						if (len <= 0xfff) {
+							ff_tx_data_len = dlc2len(TX_DLC) - 2;
+						}
+						else {
+							ff_tx_data_len = dlc2len(TX_DLC) - 6;
+						}
+						txIndex = ff_tx_data_len;
+						txFrameNum = 1 + (int)((len - ff_tx_data_len) / cf_tx_data_len) + (int)!!((len - ff_tx_data_len) % cf_tx_data_len);
+					}
+					uint8_t SN = 0;
+					uint32_t frameIndex = 1;
+
+					uint32_t exp_rx_fc_num = 0;
+					for (frameIndex = 1; frameIndex < txFrameNum; frameIndex++)
+					{
+						//testPrintf("test for frameIndex %d.\n", frameIndex);
+						struct CAN_msg CFMsg;
+						int tx_len = (int)(len - txIndex);
+						if (tx_len > cf_tx_data_len) tx_len = cf_tx_data_len;
+						SN++;
+						CFMsg.dlc = TX_DLC;
+						CFMsg.id = init[i].rx_id;
+						CFMsg.data[0] = 0x20 | (SN & 0xf);
+						memcpy(&CFMsg.data[1], &payload[txIndex], tx_len);
+						txIndex += tx_len;
+						iso_can_tp_L_Data_indication(&link[i], &CFMsg);
+					}
+
+					LONGS_EQUAL(0, last_rx_par[i].cnt);
+
+					L_Data_request_hook = NULL;
+				}
+			}
+		}
+	}
+	printf("time for case %s is %lldms\n", __FUNCTION__, GetTickCount64() - tick_start);
+}
 
 /*验证模块可以正常处理接收过程，此时接收缓冲不够大，拒绝接收*/
 //测试条件：
