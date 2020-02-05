@@ -9,5 +9,7 @@ Unit test includes basic, single frame, multi frame, communication between multi
 The complete running time of the test case is about 1 minute (AMD 2700x).
 测试用例完整运行时间为1分钟左右（AMD 2700X）。
 
+If you change the code in the "src" directory, run the unit_test project to verify that the changes introduce new problems
+如果你修改了src目录下的代码，可以运行测试工程验证修改是否引入了新的问题
         
        
