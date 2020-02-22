@@ -92,7 +92,17 @@ static int report_event_to_manage_block(struct event_mange_t* task, void* par_wi
 	}
 	return res;
 }
-
+static int lenToMinDlc(uint16_t len)
+{
+	static const uint8_t dlc_len_table[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64 };
+	int dlc;
+	for (dlc = 0; dlc <= 15; dlc++)
+	{
+		if (len <= dlc_len_table[dlc])
+			break;
+	}
+	return dlc;
+}
 //---------------control logic----------------
 static int tx_event_cf_frame(can_iso_tp_link_t_p link)
 {
@@ -128,9 +138,14 @@ static int tx_event_cf_frame(can_iso_tp_link_t_p link)
 				if (dlc2len(link->init_info.TX_DLC) > (1 + txLen))
 				{
 					memset(&link->tx_record.last_msg.data[1 + txLen], link->init_info.frame_pad, dlc2len(link->init_info.TX_DLC) - 1 - txLen);
+					link->tx_record.last_msg.dlc = lenToMinDlc(txLen+1);
+					if (link->tx_record.last_msg.dlc < 8)
+						link->tx_record.last_msg.dlc = 8;
+				}
+				else {
+					link->tx_record.last_msg.dlc = link->init_info.TX_DLC;
 				}
 				link->tx_record.current_tx_index += txLen;
-				link->tx_record.last_msg.dlc = link->init_info.TX_DLC;
 				link->tx_record.status = tx_cf_wait_tx;
 				link->tx_record.last_msg_time_ms = link->current_time_ms;
 				if (0 == link->init_info.L_Data_request(link, &link->tx_record.last_msg))
@@ -269,7 +284,7 @@ static int tx_event_N_USData_Request(can_iso_tp_link_t_p link, uint8_t isFunctio
 				link->tx_record.last_msg.id = link->init_info.funtion_id;
 			}
 
-			if (link->init_info.TX_DLC <= 8)
+			if (size <= 7)
 			{
 				link->tx_record.last_msg.data[0] = (uint8_t)size;
 				for (i = 0; i < size; i++)
@@ -280,6 +295,7 @@ static int tx_event_N_USData_Request(can_iso_tp_link_t_p link, uint8_t isFunctio
 				{
 					link->tx_record.last_msg.data[1 + i] = link->init_info.frame_pad;
 				}
+				link->tx_record.last_msg.dlc = 8;
 			}
 			else {
 				link->tx_record.last_msg.data[0] = 0;
@@ -292,8 +308,8 @@ static int tx_event_N_USData_Request(can_iso_tp_link_t_p link, uint8_t isFunctio
 				{
 					link->tx_record.last_msg.data[2 + i] = link->init_info.frame_pad;
 				}
+				link->tx_record.last_msg.dlc = lenToMinDlc(size+2);
 			}
-			link->tx_record.last_msg.dlc = link->init_info.TX_DLC;
 			link->tx_record.status = tx_sf_wait_tx;
 			link->tx_record.last_msg_time_ms = link->current_time_ms;
 			link->tx_record.current_playload = payload;

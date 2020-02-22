@@ -76,7 +76,17 @@ TEST_GROUP(singleTest)
 	{
 		destory_all_modules();
 	}
-
+	static int lenToMinDlc(uint16_t len)
+	{
+	    static const uint8_t dlc_len_table[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64 };
+		int dlc;
+		for (dlc = 0; dlc <= 15; dlc++)
+		{
+			if (len <= dlc_len_table[dlc])
+				break;
+		}
+		return dlc;
+	}
 	void singleFrameTxTest(int index, uint8_t isFunction, const uint8_t* payload, uint16_t len)
 	{
 		int i;
@@ -96,7 +106,15 @@ TEST_GROUP(singleTest)
 			LONGS_EQUAL(init[index].funtion_id.isCANFD, last_tx_par[index].par[0].msg.id.isCANFD);
 		}
 		LONGS_EQUAL(0, last_tx_par[index].par[0].msg.id.isRemote);
-		LONGS_EQUAL(link[index].init_info.TX_DLC, last_tx_par[index].par[0].msg.dlc);
+		//according 15765-2016 table12 and table13,bug reported by songarpore@hotmail.com
+		if (len <= 7)
+		{
+			LONGS_EQUAL(8, last_tx_par[index].par[0].msg.dlc);
+		}
+		else {
+			LONGS_EQUAL(lenToMinDlc(len+2), last_tx_par[index].par[0].msg.dlc);
+		}
+
 		if (last_tx_par[index].par[0].msg.dlc <= 8)
 		{
 			LONGS_EQUAL(len, last_tx_par[index].par[0].msg.data[0]);
