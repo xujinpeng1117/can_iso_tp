@@ -564,7 +564,7 @@ TEST(singleTest, singleRx)
 				}
 			}
 			else {
-				for (uint8_t rx_len = 1; rx_len <= len; rx_len++)
+				for (uint8_t rx_len = dlc2len(TEST_DLC-1) - 2 + 1; rx_len <= len; rx_len++)
 				{
 					testPrintf("test for rx_len=%d  ", rx_len);
 					payload[0] = 0;

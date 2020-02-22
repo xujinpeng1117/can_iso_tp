@@ -498,7 +498,11 @@ static int rx_event_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN
 					uint8_t rx_len = dlc2len(rx_msg->dlc);
 					if (rx_len >= (2 + len))
 					{
-						link->init_info.N_USData_indication(link, &rx_msg->data[2], len, N_OK);
+						/* according 15765-2-2016  table13, ignore frames that SF_DL does not fit int valid range*/
+						if (lenToMinDlc(len + 2) == rx_msg->dlc)
+						{
+							link->init_info.N_USData_indication(link, &rx_msg->data[2], len, N_OK);
+						}
 					}
 				}
 			}
