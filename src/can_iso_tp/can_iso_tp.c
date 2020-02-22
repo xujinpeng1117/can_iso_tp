@@ -43,10 +43,20 @@ static void printf_debug_msg(struct can_iso_tp_init_t* link, char *msg)
 		link->print_debug(msg);
 	}
 }
+static const uint8_t dlc_len_table[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64 };
 static inline uint8_t dlc2len(uint8_t dlc)
 {
-	static const uint8_t dlc_len_table[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64 };
 	return dlc_len_table[dlc & 0xf];
+}
+static int lenToMinDlc(uint16_t len)
+{
+	int dlc;
+	for (dlc = 0; dlc <= sizeof(dlc_len_table)/sizeof(dlc_len_table[0]); dlc++)
+	{
+		if (len <= dlc_len_table[dlc])
+			break;
+	}
+	return dlc;
 }
 //--------------task mange module----------------
 static int event_manage_block_init(struct event_mange_t* event)
@@ -91,17 +101,6 @@ static int report_event_to_manage_block(struct event_mange_t* task, void* par_wi
 		res = OP_OK;
 	}
 	return res;
-}
-static int lenToMinDlc(uint16_t len)
-{
-	static const uint8_t dlc_len_table[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24, 32, 48, 64 };
-	int dlc;
-	for (dlc = 0; dlc <= 15; dlc++)
-	{
-		if (len <= dlc_len_table[dlc])
-			break;
-	}
-	return dlc;
 }
 //---------------control logic----------------
 static int tx_event_cf_frame(can_iso_tp_link_t_p link)
