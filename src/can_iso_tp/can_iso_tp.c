@@ -564,13 +564,15 @@ static int rx_event_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN
 						}
 						link->rx_record.status = rx_idle;
 					}
-					link->rx_record.tx_BS_cnt++;
-					if (link->init_info.FC_BS != 0)
-					{
-						if ((link->rx_record.tx_BS_cnt % link->init_info.FC_BS) == 0)
+					else {
+						link->rx_record.tx_BS_cnt++;
+						if (link->init_info.FC_BS != 0)
 						{
-							link->rx_record.status = rx_tx_fc;
-							link->rx_record.tx_BS_cnt = 0;
+							if ((link->rx_record.tx_BS_cnt % link->init_info.FC_BS) == 0)
+							{
+								link->rx_record.status = rx_tx_fc;
+								link->rx_record.tx_BS_cnt = 0;
+							}
 						}
 					}
 				}

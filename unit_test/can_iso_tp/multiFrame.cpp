@@ -1079,6 +1079,8 @@ TEST(multiTest, normalRxBS)
 						txIndex += tx_len;
 						iso_can_tp_L_Data_indication(&link[i], &CFMsg);
 					}
+					//no more fc frame after tx done
+					LONGS_EQUAL(exp_rx_fc_num, last_tx_par[i].cnt);
 
 					LONGS_EQUAL(1, last_rx_par[i].cnt);
 					LONGS_EQUAL(len, last_rx_par[i].par[0].size);
