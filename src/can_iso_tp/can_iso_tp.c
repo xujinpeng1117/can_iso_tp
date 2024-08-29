@@ -589,8 +589,10 @@ static int rx_event_L_Data_indication(can_iso_tp_link_t_p link, const struct CAN
 		link->rx_record.last_msg.data[0] = 0x30;
 		link->rx_record.last_msg.data[1] = link->init_info.FC_BS;
 		link->rx_record.last_msg.data[2] = link->init_info.STmin;
-		memset(&link->rx_record.last_msg.data[3], link->init_info.frame_pad, dlc2len(link->init_info.TX_DLC) - 3);
-		link->rx_record.last_msg.dlc = link->init_info.TX_DLC;
+		//memset(&link->rx_record.last_msg.data[3], link->init_info.frame_pad, dlc2len(link->init_info.TX_DLC) - 3);
+		//link->rx_record.last_msg.dlc = link->init_info.TX_DLC;
+		memset(&link->rx_record.last_msg.data[3], link->init_info.frame_pad, 8 - 3);
+		link->rx_record.last_msg.dlc = 8; //The DLC value is not explicitly stated in the specification, so 8 is used here, and developers can modify it as needed
 		link->rx_record.last_msg_time_ms = link->current_time_ms;
 		if (0 == link->init_info.L_Data_request(link, &link->rx_record.last_msg))
 		{
