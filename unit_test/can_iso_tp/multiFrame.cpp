@@ -906,11 +906,11 @@ TEST(multiTest, normalRx)
 				LONGS_EQUAL(1, last_tx_par[i].cnt);
 				LONGS_EQUAL(init[i].tx_id.id, last_tx_par[i].par[0].msg.id.id);
 				LONGS_EQUAL(init[i].tx_id.isExt, last_tx_par[i].par[0].msg.id.isExt);
-				LONGS_EQUAL(TX_DLC, last_tx_par[i].par[0].msg.dlc);
+				LONGS_EQUAL(CAN_ISO_TP_TX_FC_DLC, last_tx_par[i].par[0].msg.dlc);
 				LONGS_EQUAL(0x30, last_tx_par[i].par[0].msg.data[0]);
 				LONGS_EQUAL(0x0, last_tx_par[i].par[0].msg.data[1]);
 				LONGS_EQUAL(0x0, last_tx_par[i].par[0].msg.data[2]);
-				for (int k = 3; k < dlc2len(TX_DLC); k++)
+				for (int k = 3; k < dlc2len(last_tx_par[i].par[0].msg.dlc); k++)
 				{
 					LONGS_EQUAL(init[i].frame_pad, last_tx_par[i].par[0].msg.data[k]);
 				}
@@ -1358,7 +1358,7 @@ TEST(multiTest, unexpectSF)
 				LONGS_EQUAL(exp_rx_fc_num, last_tx_par[i].cnt);
 				LONGS_EQUAL(init[i].tx_id.id, last_tx_par[i].par[exp_rx_fc_num - 1].msg.id.id);
 				LONGS_EQUAL(init[i].tx_id.isExt, last_tx_par[i].par[exp_rx_fc_num - 1].msg.id.isExt);
-				LONGS_EQUAL(TX_DLC, last_tx_par[i].par[exp_rx_fc_num - 1].msg.dlc);
+				LONGS_EQUAL(CAN_ISO_TP_TX_FC_DLC, last_tx_par[i].par[exp_rx_fc_num - 1].msg.dlc);
 				LONGS_EQUAL(0x30, last_tx_par[i].par[exp_rx_fc_num - 1].msg.data[0]);
 				LONGS_EQUAL(BS, last_tx_par[i].par[exp_rx_fc_num - 1].msg.data[1]);
 				LONGS_EQUAL(0x0, last_tx_par[i].par[exp_rx_fc_num - 1].msg.data[2]);

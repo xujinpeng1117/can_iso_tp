@@ -34,6 +34,7 @@ extern "C" {
 #include <stdint.h>
 //Support CAN_FD need more ram
 #define SUPPORT_CAN_FD
+#define CAN_ISO_TP_TX_FC_DLC (8) //The DLC value is not explicitly stated in the specification, so 8 is used here, and developers can modify it as needed
 
 #define OP_OK 0
 #define OP_NOK 1
